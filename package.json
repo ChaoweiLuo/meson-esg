@@ -1,0 +1,16 @@
+{
+  "name": "meson-esg",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "ethers": "^6.7.0",
+    "js-conflux-sdk": "^2.5.1",
+    "mysql2": "^3.6.0"
+  }
+}
