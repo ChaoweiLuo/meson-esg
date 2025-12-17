@@ -4,7 +4,7 @@ const { ethers } = require('ethers');
 const confluxRpc = process.env.CONFLUX_RPC_URL
 
 // 等待交易确认（使用ethers.js的waitForTransaction方法）
-async function waitForTransaction(conflux, hash) {
+async function waitForTransaction(hash) {
   console.log(`等待交易 ${hash} 确认...`);
   
   try {
@@ -47,6 +47,5 @@ async function waitForTransaction(conflux, hash) {
 }
 
 module.exports = {
-  initializeConflux,
   waitForTransaction
 };

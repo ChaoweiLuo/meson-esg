@@ -56,21 +56,27 @@ async function getUnprocessedBatch(connection, offset) {
   }
 }
 
-// 更新数据库中的index字段
-async function updateIndexField(connection, id, index) {
-  const query = 'UPDATE esg_block SET `index` = ? WHERE id = ?';
+// 批量更新数据库中的index字段
+async function updateIndexField(connection, updateData) {
+  // 如果传入的是单个记录的数据，则转换为数组格式
+  const dataArray = Array.isArray(updateData) ? updateData : [{ id: updateData.id, index: updateData.index }];
+  
+  // 过滤掉空数据
+  if (!dataArray.length) return;
+  
   try {
-    // 确保 id 和 index 都是数字类型
-    const idValue = parseInt(id);
-    const indexValue = parseInt(index);
+    // 为每个要更新的记录构建单独的UPDATE语句
+    const queries = dataArray.map(item => ({
+      sql: 'UPDATE esg_block SET `index` = ? WHERE id = ?',
+      values: [parseInt(item.index), parseInt(item.id)]
+    }));
     
-    if (isNaN(idValue) || isNaN(indexValue)) {
-      throw new Error(`无效的参数: id=${id}, index=${index}`);
+    // 执行所有更新操作
+    for (const query of queries) {
+      await connection.execute(query.sql, query.values);
     }
-    
-    await connection.execute(query, [indexValue, idValue]);
   } catch (error) {
-    console.error('更新数据库时出错:', error.message);
+    console.error('批量更新数据库时出错:', error.message);
     throw error;
   }
 }

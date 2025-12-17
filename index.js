@@ -1,10 +1,10 @@
 require('dotenv').config();
 const { connectToDatabase, getUnprocessedBatch, updateIndexField, BATCH_SIZE } = require('./database');
-const { initializeConflux, waitForTransaction } = require('./blockchain');
+const { waitForTransaction } = require('./blockchain');
 const { transformData, callExternalAPI } = require('./dataProcessor');
 
 // 主处理函数（批量处理）
-async function processBatch(connection, conflux, offset) {
+async function processBatch(connection, offset) {
   console.log(`正在处理偏移量 ${offset} 的数据批次...`);
   
   // 1. 获取未处理的数据批次
@@ -28,7 +28,7 @@ async function processBatch(connection, conflux, offset) {
     console.log('API响应:', JSON.stringify(apiResponse, null, 2));
     
     // 4. 等待交易确认
-    const confirmed = await waitForTransaction(conflux, apiResponse.txHash);
+    const confirmed = await waitForTransaction(apiResponse.txHash);
     if (!confirmed) {
       console.error(`交易 ${apiResponse.txHash} 未能确认，需要人工检查`);
       // 这里可以添加更多的错误处理逻辑
@@ -36,12 +36,21 @@ async function processBatch(connection, conflux, offset) {
       return false;
     }
     
-    // 5. 更新数据库中的index字段
+    // 5. 批量更新数据库中的index字段
     if (apiResponse.entryIndex && apiResponse.entryIndex.length === batch.length) {
+      // 构造批量更新的数据
+      const updateData = batch.map((row, index) => ({
+        id: row.id,
+        index: apiResponse.entryIndex[index]
+      }));
+      
+      // 执行批量更新
+      await updateIndexField(connection, updateData);
+      
+      // 输出更新日志
       for (let i = 0; i < batch.length; i++) {
         const row = batch[i];
         const index = apiResponse.entryIndex[i];
-        await updateIndexField(connection, row.id, index);
         console.log(`已更新ID ${row.id} 的index为 ${index}`);
       }
     } else {
@@ -73,16 +82,12 @@ async function main() {
     // 测试数据库连接
     await connection.execute('SELECT 1');
     
-    // 初始化Conflux客户端
-    const conflux = initializeConflux();
-    console.log('Conflux客户端初始化成功');
-    
     let offset = 0;
     let hasMoreData = true;
     
     // 循环处理数据批次
     while (hasMoreData) {
-      hasMoreData = await processBatch(connection, conflux, offset);
+      hasMoreData = await processBatch(connection, offset);
       offset += BATCH_SIZE;
       
       // 在处理下一个批次前稍作延迟，避免过于频繁的请求
