@@ -27,9 +27,6 @@ DB_USER=your_username
 DB_PASSWORD=your_password
 DB_NAME=your_database
 
-CONFLUX_RPC_URL=https://main.confluxrpc.com
-PRIVATE_KEY=your_private_key
-
 API_ENDPOINT=http://localhost:3000/api/esg
 API_KEY=your_api_key
 ```
@@ -67,6 +64,7 @@ CREATE TABLE `esg_block` (
   UNIQUE KEY `IDX_CODE` (`date`,`org_name`,`projectname`,`code`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=565344 DEFAULT CHARSET=utf8;
 ```
+如果原来的数据中没有index 字段，需要手动增加 index 字段
 
 ## 运行程序
 
