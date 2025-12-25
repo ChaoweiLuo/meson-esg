@@ -1,18 +1,23 @@
-const fs = require('fs')
-const readline = require('readline')
-const mysql = require('mysql2/promise')
-require('dotenv').config();
+import { createReadStream } from 'fs'
+import { join, dirname } from 'path'
+import { createInterface } from 'readline'
+import { createPool } from 'mysql2/promise'
+import { config } from 'dotenv'
+import { fileURLToPath } from 'url'
 
+config()
 
 /**
  * 配置区
  */
-const SQL_FILE = './esg_block.sql'
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const SQL_FILE = join(__dirname, 'esg_block_202507_202511.sql')
 const BATCH_SIZE = 500   // 每批 500 条（可调）
 const TABLE_NAME = 'esg_block'
 
 // TODO: 初始化数据到数据库中
-const db = await mysql.createPool({
+const db = await createPool({
   host: '127.0.0.1',
   user: 'root',
   password: '123456',
@@ -49,8 +54,8 @@ async function flush () {
  * 主流程
  */
 async function run () {
-  const rl = readline.createInterface({
-    input: fs.createReadStream(SQL_FILE),
+  const rl = createInterface({
+    input: createReadStream(SQL_FILE),
     crlfDelay: Infinity
   })
 
