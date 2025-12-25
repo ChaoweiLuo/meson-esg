@@ -12,13 +12,13 @@ config()
  */
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
-const SQL_FILE = join(__dirname, 'esg_block_202507_202511.sql')
+const SQL_FILE = join(__dirname, 'esg_block_2024.sql')
 const BATCH_SIZE = 500   // 每批 500 条（可调）
 const COLLECTION_NAME = 'esg_blocks'
 
 // MongoDB连接配置
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017'
-const DATABASE_NAME = process.env.MONGODB_DATABASE || 'meson'
+const DATABASE_NAME = process.env.MONGODB_DATABASE || 'meson-testnet'
 
 /**
  * 状态变量
@@ -124,7 +124,7 @@ function parseSQLValues(valueLine) {
       // 根据字段索引映射到正确的字段名
       switch(i) {
         case 0:  // id
-          doc.id = value
+          doc._id = value
           break
         case 1:  // date
           doc.date = value
